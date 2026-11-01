@@ -1,0 +1,453 @@
+<!-- ===================== F0 · parking-nocar · немає авто (гість) ===================== -->
+<section class="screen" id="parking-nocar" data-tab="parking" data-title="Паркінг · немає авто (F0)">
+  <div class="top gut">
+    <svg class="logo" role="img" aria-label="ПортCity"><use href="#logo-h"/></svg>
+    <h1 class="sr">Паркінг</h1>
+    <span class="grow"></span>
+    <button class="iconbtn iconbtn--box" type="button" aria-label="Картка клубу" data-go="card-qr"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-qr"/></svg></button>
+    <button class="iconbtn iconbtn--box" type="button" aria-label="Сповіщення" data-go="notifications"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-bell"/></svg><span class="dot"></span></button>
+  </div>
+  <div class="content gut">
+    <div class="hero hero--dark">
+      <div class="between">
+        <span class="pill pill--ondark"><span class="d" style="background:var(--on-dark-muted)"></span>Авто не додано</span>
+      </div>
+      <div class="between" style="align-items:flex-end">
+        <div><div class="eyebrow">Перші 30 хвилин</div><div class="display num">Безкоштовно</div></div>
+      </div>
+      <div class="caption muted">0–30 хв безкоштовно · 31–60 хв 20 ₴ · далі 40 ₴/год. Додайте номер — покажемо сесію і нагадаємо про безкоштовні 30 хв</div>
+      <button class="btn btn--primary" type="button" data-go="add-car">Додати номер авто</button>
+      <div class="row2">
+        <button class="btn btn--ondark-ghost btn--sm" type="button" data-go="parking-talon"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-ticket"/></svg>У мене талон</button>
+        <button class="btn btn--ondark-ghost btn--sm" type="button" data-go="parking-service"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-info"/></svg>Тарифи</button>
+      </div>
+      <button class="btn btn--tertiary" type="button" data-toast="Гаразд. Коли приїдете автом — додайте номер тут">Я без авто</button>
+      <div class="hero__updated">оновлено 13:55</div>
+    </div>
+
+    <div class="stack stack--s" style="margin-top:12px">
+      <h2 class="h3">Ваш візит</h2>
+      <div class="card list" style="gap:0;padding:4px 16px">
+        <button class="item item--72" type="button" data-go="parking-service"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-clock"/></svg></span><span class="txt"><span class="t">Сьогодні: ТРЦ до 22:00</span><span class="s">Підземний до 21:00 · наземний до 00:00</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <button class="item item--72" type="button" data-go="promo"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-tag"/></svg></span><span class="txt"><span class="t">Сьогодні в ТРЦ: −20 % INTERTOP</span><span class="s">Купон у застосунку · до 15.11</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <button class="item item--72" type="button" data-go="login"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-user"/></svg></span><span class="txt"><span class="t">Увійдіть за телефоном, щоб бачити сесію авто і бали</span><span class="s">Лише телефон, 20 секунд</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== F1 · parking-idle · авто є, сесії немає ===================== -->
+<section class="screen" id="parking-idle" data-tab="parking" data-title="Паркінг · сесії немає (F1)">
+  <div class="top gut">
+    <svg class="logo" role="img" aria-label="ПортCity"><use href="#logo-h"/></svg>
+    <h1 class="sr">Паркінг</h1>
+    <span class="grow"></span>
+    <button class="iconbtn iconbtn--box" type="button" aria-label="Картка клубу" data-go="card-qr"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-qr"/></svg></button>
+    <button class="iconbtn iconbtn--box" type="button" aria-label="Сповіщення" data-go="notifications"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-bell"/></svg><span class="dot"></span></button>
+  </div>
+  <div class="content gut">
+    <div class="hero hero--dark">
+      <div class="between">
+        <span class="pill pill--ondark"><span class="d" style="background:var(--on-dark-muted)"></span>Сесії немає</span>
+        <span class="plate" style="flex-shrink:0"><span class="band" aria-hidden="true"><i></i></span><span class="n">AC 1234 BC</span></span>
+      </div>
+      <div class="between" style="align-items:flex-end">
+        <div><div class="eyebrow">Зараз</div><div class="display num">Не на паркінгу</div></div>
+      </div>
+      <div class="caption muted">Коли заїдете — покажемо тут. 0–30 хв безкоштовно · 31–60 хв 20 ₴ · далі 40 ₴/год</div>
+      <div class="row2">
+        <button class="btn btn--ondark-ghost btn--sm" type="button" data-go="where"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-pin"/></svg>Де моє авто</button>
+        <button class="btn btn--ondark-ghost btn--sm" type="button" data-toast="Оновлено 13:58 · сесії немає"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-hist"/></svg>Оновити</button>
+      </div>
+      <button class="btn btn--tertiary" type="button" data-go="parking-talon">Заїхали, а сесії немає? Ввести талон</button>
+      <div class="hero__updated">оновлено 13:58</div>
+    </div>
+    <button class="item card--soft" type="button" data-go="notif-permission" style="border-radius:14px;padding:8px 14px"><span class="ico" style="background:var(--surface)"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-bell"/></svg></span><span class="txt"><span class="t">Увімкнути сповіщення</span><span class="s">Нагадаємо про кінець безкоштовних 30 хвилин</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+
+    <div class="stack stack--s" style="margin-top:12px">
+      <h2 class="h3">Ваш візит</h2>
+      <div class="card list" style="gap:0;padding:4px 16px">
+        <button class="item item--72" type="button" data-go="parking-service"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-clock"/></svg></span><span class="txt"><span class="t">Сьогодні: ТРЦ до 22:00</span><span class="s">Підземний до 21:00 · наземний до 00:00</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <button class="item item--72" type="button" data-go="promo"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-tag"/></svg></span><span class="txt"><span class="t">Сьогодні в ТРЦ: −20 % INTERTOP</span><span class="s">Купон у застосунку · до 15.11</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <button class="item item--72" type="button" data-go="rewards"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-gift"/></svg></span><span class="txt"><span class="t">Баланс 240 балів</span><span class="s">Доступно 240 · Очікують 65 · Винагороди</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== F2 · parking-free · безкоштовні 30 хв ===================== -->
+<section class="screen" id="parking-free" data-tab="parking" data-title="Паркінг · безкоштовні 30 хв (F2)">
+  <div class="top gut">
+    <svg class="logo" role="img" aria-label="ПортCity"><use href="#logo-h"/></svg>
+    <h1 class="sr">Паркінг</h1>
+    <span class="grow"></span>
+    <button class="iconbtn iconbtn--box" type="button" aria-label="Картка клубу" data-go="card-qr"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-qr"/></svg></button>
+    <button class="iconbtn iconbtn--box" type="button" aria-label="Сповіщення" data-go="notifications"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-bell"/></svg><span class="dot"></span></button>
+  </div>
+  <div class="content gut">
+    <div class="hero hero--dark">
+      <div class="between">
+        <span class="pill pill--ondark"><span class="d" style="background:var(--ok)"></span>Безкоштовно</span>
+        <span class="plate" style="flex-shrink:0"><span class="band" aria-hidden="true"><i></i></span><span class="n">AC 1234 BC</span></span>
+      </div>
+      <div class="between" style="align-items:flex-end">
+        <div><div class="eyebrow">Залишилось</div><div class="display num" data-countdown="1122">18:42</div></div>
+        <div style="text-align:right"><div class="eyebrow">На паркінгу з</div><div class="h3 num">14:00</div></div>
+      </div>
+      <div class="bar" aria-hidden="true"><i style="width:38%"></i></div>
+      <div class="caption muted">Заїзд о 14:00 · підземний. Виїдьте до 14:30 — безкоштовно. Затримаєтесь — 20 ₴ до 15:00.</div>
+      <div class="row2">
+        <button class="btn btn--ondark-ghost btn--sm" type="button" data-go="where"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-pin"/></svg>Рівень −2 · C</button>
+        <button class="btn btn--ondark-ghost btn--sm" type="button" data-go="support"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-logout"/></svg>Я вже виїхав</button>
+      </div>
+      <button class="btn btn--tertiary" type="button" data-go="support">Це не моє авто</button>
+      <div class="hero__updated">оновлено 14:11</div>
+    </div>
+
+    <div class="stack stack--s" style="margin-top:12px">
+      <h2 class="h3">Ваш візит</h2>
+      <div class="card list" style="gap:0;padding:4px 16px">
+        <button class="item item--72" type="button" data-go="card-qr"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-qr"/></svg></span><span class="txt"><span class="t">Картка на касі</span><span class="s">ID 7 342 118 · покажіть QR касиру</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <button class="item item--72" type="button" data-go="scan"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-scan"/></svg></span><span class="txt"><span class="t">Сканувати чек</span><span class="s">Наведіть на QR унизу чека</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <button class="item item--72" type="button" data-go="voucher"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-coffee"/></svg></span><span class="txt"><span class="t">Ваучер: Кава з собою</span><span class="s">Aroma Kava · не активуйте завчасно</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== F3 · parking · до сплати 60 ₴ (стартовий) ===================== -->
+<section class="screen" id="parking" data-tab="parking" data-title="Паркінг · до сплати 60 ₴ (F3)">
+  <div class="top gut">
+    <svg class="logo" role="img" aria-label="ПортCity"><use href="#logo-h"/></svg>
+    <h1 class="sr">Паркінг</h1>
+    <span class="grow"></span>
+    <button class="iconbtn iconbtn--box" type="button" aria-label="Картка клубу" data-go="card-qr"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-qr"/></svg></button>
+    <button class="iconbtn iconbtn--box" type="button" aria-label="Сповіщення" data-go="notifications"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-bell"/></svg><span class="dot"></span></button>
+  </div>
+  <div class="content gut">
+    <div class="hero hero--dark">
+      <div class="between">
+        <span class="pill pill--ondark"><span class="d"></span>На паркінгу з 14:00</span>
+        <span class="plate" style="flex-shrink:0"><span class="band" aria-hidden="true"><i></i></span><span class="n">AC 1234 BC</span></span>
+      </div>
+      <div class="between" style="align-items:flex-end">
+        <div><div class="eyebrow">До сплати зараз</div><div class="display num">60 ₴</div></div>
+        <div style="text-align:right"><div class="eyebrow">Тривалість</div><div class="h3 num" data-countup="4800">1:20</div></div>
+      </div>
+      <div class="bar" aria-hidden="true"><i style="width:33%"></i></div>
+      <div class="caption muted">Безкоштовні 30 хв минули о 14:30. Поточна година до 16:00 — 40 ₴, далі 40 ₴ за годину.</div>
+      <button class="btn btn--primary" type="button" data-go="parking-pay" aria-label="Оплатити 60 гривень">Оплатити 60 ₴</button>
+      <div class="row2">
+        <button class="btn btn--ondark-ghost btn--sm" type="button" data-go="where"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-pin"/></svg>Рівень −2 · C</button>
+        <button class="btn btn--ondark-ghost btn--sm" type="button" data-go="support"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-logout"/></svg>Я вже виїхав</button>
+      </div>
+      <div class="hero__updated">оновлено 15:20</div>
+    </div>
+
+    <div class="banner banner--warn" role="status"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-clock"/></svg><div class="grow">Підземний паркінг зачиняється о 21:00</div></div>
+
+    <div class="stack stack--s" style="margin-top:12px">
+      <h2 class="h3">Ваш візит</h2>
+      <div class="card list" style="gap:0;padding:4px 16px">
+        <button class="item item--72" type="button" data-go="card-qr"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-qr"/></svg></span><span class="txt"><span class="t">Картка на касі</span><span class="s">ID 7 342 118 · покажіть QR касиру</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <button class="item item--72" type="button" data-go="scan"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-scan"/></svg></span><span class="txt"><span class="t">Сканувати чек</span><span class="s">Наведіть на QR унизу чека</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <button class="item item--72" type="button" data-go="promos"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-tag"/></svg></span><span class="txt"><span class="t">Акції сьогодні</span><span class="s">−20 % INTERTOP до 15.11 та інші купони</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== S04 · parking-pay · оплата (bottom sheet поверх F3) ===================== -->
+<section class="screen" id="parking-pay" data-tab="parking" data-title="Оплата паркінгу · bottom sheet (S04)">
+  <div class="top gut">
+    <svg class="logo" role="img" aria-label="ПортCity"><use href="#logo-h"/></svg>
+    <h1 class="sr">Паркінг</h1>
+    <span class="grow"></span>
+    <span class="iconbtn iconbtn--box" aria-hidden="true"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-qr"/></svg></span>
+    <span class="iconbtn iconbtn--box" aria-hidden="true"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-bell"/></svg><span class="dot"></span></span>
+  </div>
+  <div class="content gut" aria-hidden="true" style="opacity:.6">
+    <div class="hero hero--dark">
+      <div class="between">
+        <span class="pill pill--ondark"><span class="d"></span>На паркінгу з 14:00</span>
+        <span class="plate" style="flex-shrink:0"><span class="band" aria-hidden="true"><i></i></span><span class="n">AC 1234 BC</span></span>
+      </div>
+      <div class="between" style="align-items:flex-end">
+        <div><div class="eyebrow">До сплати зараз</div><div class="display num">60 ₴</div></div>
+        <div style="text-align:right"><div class="eyebrow">Тривалість</div><div class="h3 num" data-countup="4800">1:20</div></div>
+      </div>
+      <div class="bar" aria-hidden="true"><i style="width:33%"></i></div>
+      <div class="caption muted">Безкоштовні 30 хв минули о 14:30. Поточна година до 16:00 — 40 ₴, далі 40 ₴ за годину.</div>
+      <span class="btn btn--primary">Оплатити 60 ₴</span>
+      <div class="row2">
+        <span class="btn btn--ondark-ghost btn--sm"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-pin"/></svg>Рівень −2 · C</span>
+        <span class="btn btn--ondark-ghost btn--sm"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-logout"/></svg>Я вже виїхав</span>
+      </div>
+      <div class="hero__updated">оновлено 15:20</div>
+    </div>
+    <div class="banner banner--warn"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-clock"/></svg><div class="grow">Підземний паркінг зачиняється о 21:00</div></div>
+  </div>
+  <button class="dim" type="button" data-go="parking" aria-label="Закрити"></button>
+  <div class="sheet" role="dialog" aria-labelledby="parking-pay-title">
+    <div class="grab" aria-hidden="true"></div>
+    <div class="between">
+      <h2 class="h2" id="parking-pay-title">Оплата паркінгу</h2>
+      <button class="iconbtn" type="button" aria-label="Закрити" data-go="parking"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-close"/></svg></button>
+    </div>
+    <div class="between">
+      <span class="plate" style="flex-shrink:0"><span class="band" aria-hidden="true"><i></i></span><span class="n">AC 1234 BC</span></span>
+      <span class="body-s muted" style="text-align:right">Заїзд 14:00 · на паркінгу 1 год 20 хв</span>
+    </div>
+    <div class="stack stack--s">
+      <div class="kv body-s"><span>31–60 хв</span><b>20 ₴</b></div>
+      <div class="kv body-s"><span>15:00–16:00</span><b>40 ₴</b></div>
+      <div class="hr"></div>
+      <div class="kv" style="align-items:baseline"><span class="strong">Разом</span><b class="h1 num">60 ₴</b></div>
+    </div>
+    <div class="card card--sub" style="flex-direction:row;align-items:center;gap:10px;padding:12px 14px"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-clock"/></svg><span class="body-s">Після оплати — виїзд до 16:00</span></div>
+    <div class="stack stack--s">
+      <div class="eyebrow">Спосіб оплати</div>
+      <button class="btn btn--dark wallet-pay" type="button" data-go="parking-paid" data-toast="Оплачено. Виїзд до 16:00" aria-label="Apple Pay — оплатити 60 гривень"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9-.7 0-1.9-.9-3.1-.8-1.6 0-3 .9-3.9 2.3-1.7 2.9-.4 7.2 1.2 9.5.8 1.1 1.7 2.4 3 2.4 1.2 0 1.7-.8 3.1-.8 1.4 0 1.9.8 3.1.8 1.3 0 2.1-1.2 2.9-2.3.9-1.3 1.3-2.6 1.3-2.7-.1 0-2.7-1-2.7-4zM14.1 5.8c.6-.8 1.1-1.9 1-3-.9 0-2.1.6-2.7 1.4-.6.7-1.1 1.8-1 2.9 1 .1 2.1-.5 2.7-1.3z"/></svg>Pay</button>
+      <div class="stack" role="radiogroup" aria-label="Картка для оплати" style="gap:0">
+        <label class="check" style="min-height:44px;align-items:center"><i class="on" style="border-radius:50%"></i><span>Картка •••• 4242</span></label>
+        <label class="check" style="min-height:44px;align-items:center"><i style="border-radius:50%"></i><span>Нова картка</span></label>
+      </div>
+    </div>
+    <button class="btn btn--primary" type="button" data-go="parking-paid" data-toast="Оплачено. Виїзд до 16:00" aria-label="Оплатити 60 гривень">Оплатити 60 ₴</button>
+    <div class="caption muted" style="font-weight:400">Отримувач — оператор автостоянки (ФОП). Фіскальний чек з'явиться в застосунку</div>
+  </div>
+</section>
+
+<!-- ===================== S04 · parking-pay-fail · оплата не пройшла (bottom sheet поверх F3) ===================== -->
+<section class="screen" id="parking-pay-fail" data-tab="parking" data-title="Оплата · не пройшла (S04)">
+  <div class="top gut">
+    <svg class="logo" role="img" aria-label="ПортCity"><use href="#logo-h"/></svg>
+    <h1 class="sr">Паркінг</h1>
+    <span class="grow"></span>
+    <span class="iconbtn iconbtn--box" aria-hidden="true"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-qr"/></svg></span>
+    <span class="iconbtn iconbtn--box" aria-hidden="true"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-bell"/></svg><span class="dot"></span></span>
+  </div>
+  <div class="content gut" aria-hidden="true" style="opacity:.6">
+    <div class="hero hero--dark">
+      <div class="between">
+        <span class="pill pill--ondark"><span class="d"></span>На паркінгу з 14:00</span>
+        <span class="plate" style="flex-shrink:0"><span class="band" aria-hidden="true"><i></i></span><span class="n">AC 1234 BC</span></span>
+      </div>
+      <div class="between" style="align-items:flex-end">
+        <div><div class="eyebrow">До сплати зараз</div><div class="display num">60 ₴</div></div>
+        <div style="text-align:right"><div class="eyebrow">Тривалість</div><div class="h3 num" data-countup="4800">1:20</div></div>
+      </div>
+      <div class="bar" aria-hidden="true"><i style="width:33%"></i></div>
+      <div class="caption muted">Безкоштовні 30 хв минули о 14:30. Поточна година до 16:00 — 40 ₴, далі 40 ₴ за годину.</div>
+      <span class="btn btn--primary">Оплатити 60 ₴</span>
+      <div class="row2">
+        <span class="btn btn--ondark-ghost btn--sm"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-pin"/></svg>Рівень −2 · C</span>
+        <span class="btn btn--ondark-ghost btn--sm"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-logout"/></svg>Я вже виїхав</span>
+      </div>
+      <div class="hero__updated">оновлено 15:20</div>
+    </div>
+    <div class="banner banner--warn"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-clock"/></svg><div class="grow">Підземний паркінг зачиняється о 21:00</div></div>
+  </div>
+  <button class="dim" type="button" data-go="parking" aria-label="Закрити"></button>
+  <div class="sheet" role="dialog" aria-labelledby="parking-pay-fail-title">
+    <div class="grab" aria-hidden="true"></div>
+    <div class="between">
+      <h2 class="h2" id="parking-pay-fail-title">Оплата паркінгу</h2>
+      <button class="iconbtn" type="button" aria-label="Закрити" data-go="parking"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-close"/></svg></button>
+    </div>
+    <div class="between">
+      <span class="plate" style="flex-shrink:0"><span class="band" aria-hidden="true"><i></i></span><span class="n">AC 1234 BC</span></span>
+      <span class="body-s muted" style="text-align:right">Заїзд 14:00 · на паркінгу 1 год 20 хв</span>
+    </div>
+    <div class="kv" style="align-items:baseline"><span class="strong">Разом</span><b class="h1 num">60 ₴</b></div>
+    <div class="banner banner--bad" role="alert"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-xc"/></svg><div class="grow">Оплата не пройшла. Гроші не списані — спробуйте ще раз або сплатіть у паркоматі</div></div>
+    <button class="btn btn--primary" type="button" data-go="parking-paid" data-toast="Оплачено. Виїзд до 16:00" aria-label="Спробувати ще раз — оплатити 60 гривень">Спробувати ще раз</button>
+    <button class="btn btn--secondary" type="button" data-go="parking-service">Сплатити в паркоматі</button>
+    <div class="caption muted" style="font-weight:400">Отримувач — оператор автостоянки (ФОП). Фіскальний чек з'явиться в застосунку</div>
+  </div>
+</section>
+
+<!-- ===================== F4 · parking-paid · оплачено ===================== -->
+<section class="screen" id="parking-paid" data-tab="parking" data-title="Паркінг · оплачено, виїзд до 16:00 (F4)">
+  <div class="top gut">
+    <svg class="logo" role="img" aria-label="ПортCity"><use href="#logo-h"/></svg>
+    <h1 class="sr">Паркінг</h1>
+    <span class="grow"></span>
+    <button class="iconbtn iconbtn--box" type="button" aria-label="Картка клубу" data-go="card-qr"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-qr"/></svg></button>
+    <button class="iconbtn iconbtn--box" type="button" aria-label="Сповіщення" data-go="notifications"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-bell"/></svg><span class="dot"></span></button>
+  </div>
+  <div class="content gut">
+    <div class="hero hero--dark">
+      <div class="between">
+        <span class="pill pill--ondark"><span class="d" style="background:var(--ok)"></span>Оплачено</span>
+        <span class="plate" style="flex-shrink:0"><span class="band" aria-hidden="true"><i></i></span><span class="n">AC 1234 BC</span></span>
+      </div>
+      <div class="between" style="align-items:flex-end">
+        <div><div class="eyebrow">Виїзд до</div><div class="display num">16:00</div></div>
+        <div style="text-align:right"><div class="eyebrow">Залишилось</div><div class="h3 num" data-countdown-min="2400">40 хв</div></div>
+      </div>
+      <div class="bar" aria-hidden="true"><i style="width:33%"></i></div>
+      <div class="caption muted">Після 16:00 почнеться нова година — 40 ₴. Шлагбаум відкриється за номером.</div>
+      <div class="row2">
+        <button class="btn btn--ondark-ghost btn--sm" type="button" data-go="where"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-pin"/></svg>Рівень −2 · C</button>
+        <button class="btn btn--ondark-ghost btn--sm" type="button" data-go="scan"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-scan"/></svg>Сканувати чек</button>
+      </div>
+      <button class="btn btn--tertiary" type="button" data-go="parking-receipt">Шлагбаум не відкрився?</button>
+      <div class="hero__updated">оновлено 15:20</div>
+    </div>
+
+    <div class="stack stack--s" style="margin-top:12px">
+      <h2 class="h3">Ваш візит</h2>
+      <div class="card list" style="gap:0;padding:4px 16px">
+        <button class="item item--72" type="button" data-go="scan"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-scan"/></svg></span><span class="txt"><span class="t">Сканувати чек, поки не забули</span><span class="s">Наведіть на QR унизу чека</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <button class="item item--72" type="button" data-go="where"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-pin"/></svg></span><span class="txt"><span class="t">Де моє авто: −2, ряд C</span><span class="s">Підземний · збережено 14:05</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <button class="item item--72" type="button" data-go="history"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-receipt"/></svg></span><span class="txt"><span class="t">Нараховано сьогодні +120</span><span class="s">ARBER · 4 000 ₴</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== S05 · parking-receipt · підтвердження оплати ===================== -->
+<section class="screen" id="parking-receipt" data-tab="parking" data-title="Підтвердження оплати · чек (S05)">
+  <div class="top gut">
+    <button class="iconbtn" type="button" aria-label="Назад" data-go="parking-paid"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-back"/></svg></button>
+    <h1>Підтвердження оплати</h1>
+  </div>
+  <div class="content gut">
+    <div class="card center" style="gap:10px;padding-block:20px">
+      <span class="pill pill--ok"><svg class="ic ic--xs" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-checkc"/></svg>Оплачено</span>
+      <div class="display num">Виїзд до 16:00</div>
+      <span class="plate plate--lg"><span class="band" aria-hidden="true"><i></i></span><span class="n">AC 1234 BC</span></span>
+    </div>
+    <div class="card" style="gap:6px">
+      <div class="kv" style="min-height:32px;align-items:center"><span>Сплачено</span><b>60 ₴ · 15:20</b></div>
+      <div class="kv" style="min-height:44px;align-items:center"><span>Номер платежу</span><button class="lnk num" type="button" data-copy="4F7K-2031" aria-label="Скопіювати номер платежу 4F7K-2031" style="min-height:44px;font-size:15px;display:inline-flex;align-items:center;gap:6px">4F7K-2031<svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-doc"/></svg></button></div>
+      <div class="kv" style="min-height:32px;align-items:center"><span>Оператор</span><b>ФОП (назва з договору)</b></div>
+    </div>
+    <div class="card center" style="gap:10px;padding-block:20px">
+      <div class="qr" data-qr="47203120" role="img" aria-label="QR-код фіскального чека" style="border:1px solid var(--line)"></div>
+      <div class="body-s muted">Покажіть це оператору</div>
+    </div>
+    <a class="btn btn--primary" href="tel:+380675904546" data-toast="Дзвінок оператору · +38 (067) 590-45-46"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-phone"/></svg>Подзвонити оператору</a>
+    <button class="btn btn--secondary" type="button" data-toast="Чек надіслано на email"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-mail"/></svg>Надіслати чек на email</button>
+    <button class="btn btn--tertiary" type="button" style="padding:0 8px" data-go="support">Повідомити про проблему</button>
+  </div>
+</section>
+
+<!-- ===================== F5 · parking-overstay · прострочено ===================== -->
+<section class="screen" id="parking-overstay" data-tab="parking" data-title="Паркінг · прострочено, доплата 40 ₴ (F5)">
+  <div class="top gut">
+    <svg class="logo" role="img" aria-label="ПортCity"><use href="#logo-h"/></svg>
+    <h1 class="sr">Паркінг</h1>
+    <span class="grow"></span>
+    <button class="iconbtn iconbtn--box" type="button" aria-label="Картка клубу" data-go="card-qr"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-qr"/></svg></button>
+    <button class="iconbtn iconbtn--box" type="button" aria-label="Сповіщення" data-go="notifications"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-bell"/></svg><span class="dot"></span></button>
+  </div>
+  <div class="content gut">
+    <div class="hero hero--dark">
+      <div class="between">
+        <span class="pill pill--ondark"><span class="d" style="background:var(--bad)"></span>Прострочено 16:00</span>
+        <span class="plate" style="flex-shrink:0"><span class="band" aria-hidden="true"><i></i></span><span class="n">AC 1234 BC</span></span>
+      </div>
+      <div class="between" style="align-items:flex-end">
+        <div><div class="eyebrow">Доплата</div><div class="display num">40 ₴</div></div>
+        <div style="text-align:right"><div class="eyebrow">Прострочено на</div><div class="h3 num" data-countup="300">0:05</div></div>
+      </div>
+      <div class="bar" aria-hidden="true"><i style="width:100%"></i></div>
+      <div class="caption muted">Оплачений час минув о 16:00. Нова година — 40 ₴. Нічого не списується автоматично.</div>
+      <button class="btn btn--primary" type="button" data-go="parking-pay" aria-label="Доплатити 40 гривень">Доплатити 40 ₴</button>
+      <div class="row2">
+        <button class="btn btn--ondark-ghost btn--sm" type="button" data-go="where"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-pin"/></svg>Рівень −2 · C</button>
+        <button class="btn btn--ondark-ghost btn--sm" type="button" data-go="support"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-logout"/></svg>Я вже виїхав</button>
+      </div>
+      <div class="hero__updated">оновлено 16:05</div>
+    </div>
+
+    <div class="stack stack--s" style="margin-top:12px">
+      <h2 class="h3">Ваш візит</h2>
+      <div class="card list" style="gap:0;padding:4px 16px">
+        <button class="item item--72" type="button" data-go="scan"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-scan"/></svg></span><span class="txt"><span class="t">Сканувати чек, поки не забули</span><span class="s">Наведіть на QR унизу чека</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <button class="item item--72" type="button" data-go="where"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-pin"/></svg></span><span class="txt"><span class="t">Де моє авто: −2, ряд C</span><span class="s">Підземний · збережено 14:05</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <button class="item item--72" type="button" data-go="scan-pending"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-receipt"/></svg></span><span class="txt"><span class="t">Чек на перевірці</span><span class="s">Comfy · 12 990 ₴ · відповімо до 24 год</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== F6 · parking-closed · закрито ===================== -->
+<section class="screen" id="parking-closed" data-tab="parking" data-title="Паркінг · закрито, 1 год 52 хв · 60 ₴ (F6)">
+  <div class="top gut">
+    <svg class="logo" role="img" aria-label="ПортCity"><use href="#logo-h"/></svg>
+    <h1 class="sr">Паркінг</h1>
+    <span class="grow"></span>
+    <button class="iconbtn iconbtn--box" type="button" aria-label="Картка клубу" data-go="card-qr"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-qr"/></svg></button>
+    <button class="iconbtn iconbtn--box" type="button" aria-label="Сповіщення" data-go="notifications"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-bell"/></svg><span class="dot"></span></button>
+  </div>
+  <div class="content gut">
+    <div class="hero hero--dark">
+      <div class="between">
+        <span class="pill pill--ondark"><span class="d" style="background:var(--on-dark-muted)"></span>Виїхали о 15:52</span>
+        <span class="plate" style="flex-shrink:0"><span class="band" aria-hidden="true"><i></i></span><span class="n">AC 1234 BC</span></span>
+      </div>
+      <div class="between" style="align-items:flex-end">
+        <div><div class="eyebrow">Тривалість</div><div class="display num">1:52</div></div>
+        <div style="text-align:right"><div class="eyebrow">Сплачено</div><div class="h3 num">60 ₴</div></div>
+      </div>
+      <div class="caption muted">Дякуємо! Ви були в Порт City. Заїзд 14:00 · виїзд 15:52 · сплачено 60 ₴ о 15:20.</div>
+      <button class="btn btn--primary" type="button" data-go="scan">Сканувати чек</button>
+      <div class="row2">
+        <button class="btn btn--ondark-ghost btn--sm" type="button" data-go="parking-receipt"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-receipt"/></svg>Чек</button>
+        <button class="btn btn--ondark-ghost btn--sm" type="button" data-go="history-parking"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-hist"/></svg>Історія</button>
+      </div>
+      <div class="hero__updated">оновлено 15:52</div>
+    </div>
+
+    <div class="stack stack--s" style="margin-top:12px">
+      <h2 class="h3">Ваш візит</h2>
+      <div class="card list" style="gap:0;padding:4px 16px">
+        <button class="item item--72" type="button" data-go="history-parking"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-p"/></svg></span><span class="txt"><span class="t">Підсумок візиту: 1 год 52 хв · 60 ₴</span><span class="s">30.10 · заїзд 14:00 · виїзд 15:52</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <button class="item item--72" type="button" data-go="scan-pending"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-receipt"/></svg></span><span class="txt"><span class="t">Чек на перевірці</span><span class="s">Comfy · 12 990 ₴ · відповімо до 24 год</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <button class="item item--72" type="button" data-go="reward"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-gift"/></svg></span><span class="txt"><span class="t">Доступна винагорода: кава за 60 балів</span><span class="s">Кава з собою · Aroma Kava · у вас 240</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== F7 · parking-still · ви ще на паркінгу? ===================== -->
+<section class="screen" id="parking-still" data-tab="parking" data-title="Паркінг · ви ще на паркінгу? (F7)">
+  <div class="top gut">
+    <svg class="logo" role="img" aria-label="ПортCity"><use href="#logo-h"/></svg>
+    <h1 class="sr">Паркінг</h1>
+    <span class="grow"></span>
+    <button class="iconbtn iconbtn--box" type="button" aria-label="Картка клубу" data-go="card-qr"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-qr"/></svg></button>
+    <button class="iconbtn iconbtn--box" type="button" aria-label="Сповіщення" data-go="notifications"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-bell"/></svg><span class="dot"></span></button>
+  </div>
+  <div class="content gut">
+    <div class="hero hero--dark">
+      <div class="between">
+        <span class="pill pill--ondark"><span class="d"></span>Ви ще на паркінгу?</span>
+        <span class="plate" style="flex-shrink:0"><span class="band" aria-hidden="true"><i></i></span><span class="n">AC 1234 BC</span></span>
+      </div>
+      <div class="between" style="align-items:flex-end">
+        <div><div class="eyebrow">Тривалість</div><div class="display num" data-countup="18300">5:05</div></div>
+        <div style="text-align:right"><div class="eyebrow">На паркінгу з</div><div class="h3 num">14:00</div></div>
+      </div>
+      <div class="caption muted">Заїзд о 14:00 · підземний · понад 5 год. Нічого не списується автоматично — підтвердьте, що ви ще тут.</div>
+      <button class="btn btn--primary" type="button" data-go="parking" data-toast="Дякуємо. Сесію оновлено">Так, я тут</button>
+      <div class="row2">
+        <button class="btn btn--ondark-ghost btn--sm" type="button" data-go="support"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-logout"/></svg>Я виїхав</button>
+        <button class="btn btn--ondark-ghost btn--sm" type="button" data-go="parking-service"><svg class="ic ic--s" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-info"/></svg>Тарифи</button>
+      </div>
+      <div class="hero__updated">оновлено 19:05</div>
+    </div>
+
+    <div class="stack stack--s" style="margin-top:12px">
+      <h2 class="h3">Ваш візит</h2>
+      <div class="card list" style="gap:0;padding:4px 16px">
+        <button class="item item--72" type="button" data-go="card-qr"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-qr"/></svg></span><span class="txt"><span class="t">Картка на касі</span><span class="s">ID 7 342 118 · покажіть QR касиру</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <button class="item item--72" type="button" data-go="scan"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-scan"/></svg></span><span class="txt"><span class="t">Сканувати чек</span><span class="s">Наведіть на QR унизу чека</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <button class="item item--72" type="button" data-go="promos"><span class="ico ico--acc ico--round"><svg class="ic" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-tag"/></svg></span><span class="txt"><span class="t">Акції сьогодні</span><span class="s">−20 % INTERTOP до 15.11 та інші купони</span></span><svg class="ic muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev"/></svg></button>
+      </div>
+    </div>
+  </div>
+</section>

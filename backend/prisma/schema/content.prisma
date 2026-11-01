@@ -1,0 +1,149 @@
+// Content module: mall tenants, fiscal number whitelist, per-tenant loyalty rules, WordPress import runs.
+
+enum TenantStatus {
+  active
+  hidden
+  closed
+}
+
+enum FiscalNumberStatus {
+  active
+  pending
+  blocked
+}
+
+enum FiscalNumberSource {
+  admin
+  receipt
+  import
+}
+
+enum ContentImportStatus {
+  running
+  succeeded
+  failed
+}
+
+model Tenant {
+  id                  String       @id @db.Uuid
+  slug                String       @unique @db.VarChar(100)
+  name                String       @db.VarChar(200)
+  /// Category key (fashion, coffee, cinema, kids, ...); the registry lives in code.
+  category            String       @db.VarChar(50)
+  floor               Int?
+  logoKey             String?      @map("logo_key")
+  website             String?
+  phone               String?      @db.VarChar(32)
+  description         String?
+  /// Receipts from this tenant's cash registers earn points.
+  participates        Boolean      @default(true)
+  /// Overrides baseRatePercent of the active rule set when set.
+  ratePercentOverride Int?         @map("rate_percent_override")
+  /// Receipts from this tenant are rejected with PC_RECEIPT_EXCLUDED_TENANT.
+  excludedFromProgram Boolean      @default(false) @map("excluded_from_program")
+  status              TenantStatus @default(active)
+  /// Weekly opening hours (Kyiv time), see content/domain/tenant-hours.ts:
+  /// { "mon": ["10:00-22:00"], ..., "sun": [], "exceptions": [{ "date": "2026-12-31", "ranges": ["10:00-18:00"] }] }.
+  /// A missing day (or null here) means the mall hours apply; [] means closed that day.
+  hours               Json?
+  /// Where to find the tenant inside the mall, e.g. "1 поверх, біля центрального входу".
+  locationText        String?      @map("location_text") @db.VarChar(200)
+  /// Public URL of a map image that shows the tenant.
+  mapImageUrl         String?      @map("map_image_url") @db.VarChar(500)
+  createdAt           DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  fiscalNumbers    TenantFiscalNumber[]
+  loyaltyRules     TenantLoyaltyRule[]
+  receipts         Receipt[]
+  rewards          Reward[]
+  promos           Promo[]
+  vouchers         Voucher[]            @relation("VoucherTenant")
+  redeemedVouchers Voucher[]            @relation("VoucherRedeemedByTenant")
+  validatorDevices ValidatorDevice[]
+
+  @@index([status, participates])
+  @@index([category])
+  @@map("tenants")
+}
+
+/// Whitelist of cash register fiscal numbers (the fn parameter of the tax-service QR) mapped to tenants.
+model TenantFiscalNumber {
+  id            String             @id @db.Uuid
+  fn            String             @unique @db.VarChar(20)
+  tenantId      String?            @map("tenant_id") @db.Uuid
+  status        FiscalNumberStatus @default(pending)
+  source        FiscalNumberSource
+  firstSeenAt   DateTime           @default(now()) @map("first_seen_at") @db.Timestamptz(6)
+  confirmedById String?            @map("confirmed_by_id") @db.Uuid
+  confirmedAt   DateTime?          @map("confirmed_at") @db.Timestamptz(6)
+  note          String?
+  createdAt     DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant      Tenant?    @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  confirmedBy AdminUser? @relation(fields: [confirmedById], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("tenant_fiscal_numbers")
+}
+
+/// Time-bound per-tenant override of the program rules.
+model TenantLoyaltyRule {
+  id              String    @id @db.Uuid
+  tenantId        String    @map("tenant_id") @db.Uuid
+  ratePercent     Int       @map("rate_percent")
+  minTotalKopecks Int       @default(0) @map("min_total_kopecks")
+  dailyCapPoints  Int?      @map("daily_cap_points")
+  validFrom       DateTime  @map("valid_from") @db.Timestamptz(6)
+  validTo         DateTime? @map("valid_to") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, validFrom])
+  @@map("tenant_loyalty_rules")
+}
+
+/// Extended mall facts edited in the back office (PUT /admin/content/mall-info). Singleton:
+/// the only row has id = 1 (CHECK in SQL). Null columns fall back to configuration (MALL_ADDRESS,
+/// MALL_HOURS, SUPPORT_PHONE, SUPPORT_EMAIL) or are omitted from GET /mall/info.
+model MallInfo {
+  id                   Int      @id @default(1)
+  address              String?  @db.VarChar(300)
+  /// "HH:mm-HH:mm", Kyiv time.
+  hours                String?  @db.VarChar(32)
+  telegramUrl          String?  @map("telegram_url") @db.VarChar(500)
+  infoDeskLocation     String?  @map("info_desk_location") @db.VarChar(200)
+  infoDeskHours        String?  @map("info_desk_hours") @db.VarChar(32)
+  parkingOperatorName  String?  @map("parking_operator_name") @db.VarChar(200)
+  parkingOperatorPhone String?  @map("parking_operator_phone") @db.VarChar(32)
+  parkingOperatorHours String?  @map("parking_operator_hours") @db.VarChar(64)
+  rulesPdfUrl          String?  @map("rules_pdf_url") @db.VarChar(500)
+  /// JSON array of { "key": "privacy", "title": "...", "url": "https://..." }.
+  legalDocuments       Json     @default("[]") @map("legal_documents")
+  /// JSON array of { "floor": 1, "url": "https://..." }.
+  floorMapUrls         Json     @default("[]") @map("floor_map_urls")
+  parkingMapUrl        String?  @map("parking_map_url") @db.VarChar(500)
+  supportPhone         String?  @map("support_phone") @db.VarChar(32)
+  supportEmail         String?  @map("support_email") @db.VarChar(200)
+  updatedById          String?  @map("updated_by_id") @db.Uuid
+  updatedAt            DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("mall_info")
+}
+
+/// WordPress import stub: one row per run with counters in stats.
+model ContentImportRun {
+  id         String              @id @db.Uuid
+  source     String              @db.VarChar(50)
+  status     ContentImportStatus @default(running)
+  startedAt  DateTime            @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt DateTime?           @map("finished_at") @db.Timestamptz(6)
+  stats      Json?
+  error      String?
+
+  @@index([startedAt(sort: Desc)])
+  @@map("content_import_runs")
+}

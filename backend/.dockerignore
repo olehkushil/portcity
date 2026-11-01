@@ -1,0 +1,16 @@
+node_modules
+dist
+coverage
+.git
+.github
+.env
+.env.*
+!.env.example
+*.log
+docs
+!docs/openapi.json
+test
+.vscode
+.idea
+.docker-data
+README.md

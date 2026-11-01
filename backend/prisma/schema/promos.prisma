@@ -1,0 +1,184 @@
+// Promos module: promotions, coupon templates, events and registrations (tickets are vouchers).
+
+enum PromoKind {
+  info
+  coupon
+}
+
+enum PromoStatus {
+  draft
+  published
+  archived
+}
+
+enum EventStatus {
+  draft
+  published
+  cancelled
+  finished
+}
+
+enum EventRegistrationStatus {
+  active
+  cancelled
+  used
+}
+
+enum CouponClaimStatus {
+  active
+  cancelled
+}
+
+/// Filter chips of the promo list (prototype: Одяг і взуття, Їжа, Розваги, Діти, Краса).
+enum PromoCategory {
+  fashion
+  food
+  entertainment
+  kids
+  beauty
+  electronics
+  other
+}
+
+/// Filter chips of the event poster (prototype: Для дітей, Майстер-класи, Кіно).
+enum EventCategory {
+  kids
+  masterclass
+  cinema
+  concert
+  other
+}
+
+/// registration: members register in the app and get a ticket; external: admission elsewhere (externalUrl).
+enum EventAdmission {
+  registration
+  external
+}
+
+model Promo {
+  id               String        @id @db.Uuid
+  tenantId         String?       @map("tenant_id") @db.Uuid
+  title            String        @db.VarChar(200)
+  body             String
+  kind             PromoKind     @default(info)
+  category         PromoCategory @default(other)
+  validFrom        DateTime      @map("valid_from") @db.Timestamptz(6)
+  validTo          DateTime      @map("valid_to") @db.Timestamptz(6)
+  imageKey         String?       @map("image_key")
+  status           PromoStatus   @default(draft)
+  /// Set for kind = coupon; claiming the promo issues a coupon voucher from this template.
+  couponTemplateId String?       @unique @map("coupon_template_id") @db.Uuid
+  /// Higher priority is listed first.
+  priority         Int           @default(0)
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant         Tenant?         @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  couponTemplate CouponTemplate? @relation(fields: [couponTemplateId], references: [id], onDelete: Restrict)
+  claims         CouponClaim[]
+
+  @@index([status, validFrom, validTo])
+  @@index([tenantId])
+  @@index([status, category])
+  @@map("promos")
+}
+
+model CouponTemplate {
+  id                      String   @id @db.Uuid
+  discountText            String   @map("discount_text") @db.VarChar(200)
+  perUserLimit            Int      @default(1) @map("per_user_limit")
+  /// Total number of coupons that can be claimed; null means unlimited.
+  totalLimit              Int?     @map("total_limit")
+  claimedCount            Int      @default(0) @map("claimed_count")
+  requiresActivation      Boolean  @default(true) @map("requires_activation")
+  /// Coupon lifetime after claim; null means until the promo's validTo.
+  validityHoursAfterClaim Int?     @map("validity_hours_after_claim")
+  terms                   String?
+  createdAt               DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  promo  Promo?
+  claims CouponClaim[]
+
+  @@map("coupon_templates")
+}
+
+/// One row per coupon claim; the coupon itself is a voucher owned by rewards
+/// (kind coupon, sourceType promo, sourceId = this id).
+model CouponClaim {
+  id               String            @id @db.Uuid
+  promoId          String            @map("promo_id") @db.Uuid
+  couponTemplateId String            @map("coupon_template_id") @db.Uuid
+  userId           String            @map("user_id") @db.Uuid
+  voucherId        String?           @unique @map("voucher_id") @db.Uuid
+  status           CouponClaimStatus @default(active)
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  cancelledAt      DateTime?         @map("cancelled_at") @db.Timestamptz(6)
+
+  promo          Promo          @relation(fields: [promoId], references: [id], onDelete: Restrict)
+  couponTemplate CouponTemplate @relation(fields: [couponTemplateId], references: [id], onDelete: Restrict)
+
+  @@index([promoId, userId, status])
+  @@index([couponTemplateId])
+  @@map("coupon_claims")
+}
+
+model Event {
+  id                        String         @id @db.Uuid
+  title                     String         @db.VarChar(200)
+  description               String?
+  startsAt                  DateTime       @map("starts_at") @db.Timestamptz(6)
+  endsAt                    DateTime       @map("ends_at") @db.Timestamptz(6)
+  venue                     String?        @db.VarChar(200)
+  category                  EventCategory  @default(other)
+  /// Host tenant (e.g. Figli Migli); FK to tenants in the hand-written SQL (no Prisma relation,
+  /// so content.prisma stays untouched). Read through CONTENT_PORT.
+  tenantId                  String?        @map("tenant_id") @db.Uuid
+  /// Maximum number of persons (adults + children); null means unlimited.
+  capacity                  Int?
+  registeredCount           Int            @default(0) @map("registered_count")
+  registrationOpen          Boolean        @default(true) @map("registration_open")
+  admission                 EventAdmission @default(registration)
+  /// Where to buy or book when admission = external (cinema sessions, concerts).
+  externalUrl               String?        @map("external_url") @db.VarChar(500)
+  /// Persons per registration; null means the events.registration flag payload
+  /// (maxPersonsPerRegistration) or 4.
+  maxPersonsPerRegistration Int?           @map("max_persons_per_registration")
+  /// Legacy minimum age; ageMin / ageMax describe the audience range.
+  ageLimit                  Int?           @map("age_limit")
+  ageMin                    Int?           @map("age_min")
+  ageMax                    Int?           @map("age_max")
+  imageKey                  String?        @map("image_key")
+  status                    EventStatus    @default(draft)
+  createdAt                 DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                 DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  registrations EventRegistration[]
+
+  @@index([status, startsAt])
+  @@index([status, category, startsAt])
+  @@index([tenantId])
+  @@map("events")
+}
+
+/// One registration per member per event; the ticket is a voucher of kind ticket.
+model EventRegistration {
+  id          String                  @id @db.Uuid
+  eventId     String                  @map("event_id") @db.Uuid
+  userId      String                  @map("user_id") @db.Uuid
+  adults      Int                     @default(1)
+  children    Int                     @default(0)
+  voucherId   String?                 @unique @map("voucher_id") @db.Uuid
+  status      EventRegistrationStatus @default(active)
+  createdAt   DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
+  cancelledAt DateTime?               @map("cancelled_at") @db.Timestamptz(6)
+
+  event   Event    @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  voucher Voucher? @relation(fields: [voucherId], references: [id], onDelete: Restrict)
+
+  @@unique([eventId, userId])
+  @@index([userId])
+  @@map("event_registrations")
+}

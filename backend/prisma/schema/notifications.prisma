@@ -1,0 +1,73 @@
+// Notifications module: in-app inbox, push deliveries per device and per-kind preferences.
+
+enum NotificationChannel {
+  inapp
+  push
+  both
+}
+
+enum PushDeliveryStatus {
+  queued
+  sent
+  failed
+  skipped
+}
+
+model Notification {
+  id        String              @id @db.Uuid
+  userId    String              @map("user_id") @db.Uuid
+  /// Kind key from the registry in code (receipt_credited, points_expiring, parking_payable, ...).
+  kind      String              @db.VarChar(64)
+  title     String              @db.VarChar(200)
+  body      String
+  data      Json                @default("{}")
+  channel   NotificationChannel @default(inapp)
+  sentAt    DateTime?           @map("sent_at") @db.Timestamptz(6)
+  readAt    DateTime?           @map("read_at") @db.Timestamptz(6)
+  /// NotifyInput.dedupeKey (`outbox:<eventId>`, `reminder:<id>`); a replay returns the existing row.
+  dedupeKey String?             @map("dedupe_key") @db.VarChar(200)
+  createdAt DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries PushDelivery[]
+
+  @@unique([userId, dedupeKey])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+/// One push attempt record per (notification, device).
+model PushDelivery {
+  id             String             @id @db.Uuid
+  notificationId String             @map("notification_id") @db.Uuid
+  deviceId       String             @map("device_id") @db.Uuid
+  provider       String             @default("fcm") @db.VarChar(32)
+  status         PushDeliveryStatus @default(queued)
+  error          String?
+  attempts       Int                @default(0)
+  sentAt         DateTime?          @map("sent_at") @db.Timestamptz(6)
+  createdAt      DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  device       Device       @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@index([notificationId])
+  @@index([deviceId])
+  @@index([status, updatedAt])
+  @@map("push_deliveries")
+}
+
+/// Opt-in/opt-out per notification kind; a missing row means enabled.
+model NotificationPreference {
+  userId    String   @map("user_id") @db.Uuid
+  kind      String   @db.VarChar(64)
+  enabled   Boolean  @default(true)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, kind])
+  @@map("notification_preferences")
+}

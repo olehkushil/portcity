@@ -1,0 +1,79 @@
+// Payments module: payments through pluggable providers and the webhook log that makes callbacks idempotent.
+
+enum PaymentPurpose {
+  parking
+  other
+}
+
+enum PaymentProvider {
+  mock
+  liqpay
+  mono
+  wayforpay
+  fondy
+  portmone
+}
+
+enum PaymentStatus {
+  created
+  pending
+  succeeded
+  failed
+  cancelled
+  expired
+  refunded
+  partially_refunded
+  fiscalized
+}
+
+enum Currency {
+  UAH
+}
+
+model Payment {
+  id               String          @id @db.Uuid
+  userId           String          @map("user_id") @db.Uuid
+  purpose          PaymentPurpose
+  /// CHECK (amount_kopecks > 0) in the migration.
+  amountKopecks    Int             @map("amount_kopecks")
+  currency         Currency        @default(UAH)
+  provider         PaymentProvider
+  providerRef      String?         @map("provider_ref") @db.VarChar(100)
+  status           PaymentStatus   @default(created)
+  idempotencyKey   String          @unique @map("idempotency_key") @db.VarChar(255)
+  checkoutUrl      String?         @map("checkout_url")
+  fiscalReceiptUrl String?         @map("fiscal_receipt_url")
+  failureCode      String?         @map("failure_code") @db.VarChar(100)
+  refundedKopecks  Int             @default(0) @map("refunded_kopecks")
+  paidAt           DateTime?       @map("paid_at") @db.Timestamptz(6)
+  meta             Json            @default("{}")
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Restrict)
+  parkingLinks ParkingPaymentLink[]
+  webhookLogs  PaymentWebhookLog[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status, createdAt])
+  @@index([provider, providerRef])
+  @@map("payments")
+}
+
+/// Raw provider callbacks; (provider, externalId) is unique so replays are no-ops.
+model PaymentWebhookLog {
+  id          String          @id @db.Uuid
+  provider    PaymentProvider
+  externalId  String          @map("external_id") @db.VarChar(200)
+  paymentId   String?         @map("payment_id") @db.Uuid
+  payload     Json
+  receivedAt  DateTime        @default(now()) @map("received_at") @db.Timestamptz(6)
+  processedAt DateTime?       @map("processed_at") @db.Timestamptz(6)
+  result      String?         @db.VarChar(200)
+
+  payment Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  @@unique([provider, externalId])
+  @@index([paymentId])
+  @@map("payment_webhook_logs")
+}

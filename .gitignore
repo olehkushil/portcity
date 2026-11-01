@@ -1,0 +1,24 @@
+# Dependencies and build output (backend/.gitignore adds its own rules)
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Environment files: only the documented example is versioned
+.env
+.env.*
+!.env.example
+
+# Local Claude Code settings
+.claude/
+
+# Client materials are kept out of the repository
+PortCity_App_Presentation.pptx
+
+# Temporary files
+*.bak
+design/preview*.html
+
+# OS
+.DS_Store
+Thumbs.db

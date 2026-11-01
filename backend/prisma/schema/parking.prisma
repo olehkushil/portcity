@@ -1,0 +1,149 @@
+// Parking module: member vehicles, parking sessions (provider-synced or info-mode timers),
+// versioned tariffs and links between sessions and payments.
+
+enum VehicleVerifiedVia {
+  talon
+  paymat_code
+  operator
+  none
+}
+
+enum ParkingZone {
+  underground
+  surface
+}
+
+enum ParkingSessionStatus {
+  open
+  payable
+  paid
+  overstay
+  closed
+  closed_unpaid
+  closed_free
+}
+
+enum ParkingSessionSource {
+  provider
+  info_timer
+}
+
+/// Member vehicle. Soft-deleted; a partial unique index in the init migration keeps one live row per (user, plate).
+model Vehicle {
+  id           String             @id @db.Uuid
+  userId       String             @map("user_id") @db.Uuid
+  /// Normalised plate: Latin letters and digits, no spaces (AC1234BC).
+  plate        String             @db.VarChar(16)
+  plateDisplay String             @map("plate_display") @db.VarChar(20)
+  /// Member's own name for the car («Моя Škoda»), optional.
+  label        String?            @db.VarChar(40)
+  verified     Boolean            @default(false)
+  verifiedVia  VehicleVerifiedVia @default(none) @map("verified_via")
+  verifiedAt   DateTime?          @map("verified_at") @db.Timestamptz(6)
+  isDefault    Boolean            @default(false) @map("is_default")
+  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt    DateTime?          @map("deleted_at") @db.Timestamptz(6)
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions ParkingSession[]
+
+  @@index([userId])
+  @@index([plate])
+  @@map("vehicles")
+}
+
+model ParkingSession {
+  id                String               @id @db.Uuid
+  userId            String?              @map("user_id") @db.Uuid
+  vehicleId         String?              @map("vehicle_id") @db.Uuid
+  /// Normalised plate as reported by the provider; null for anonymous info-mode timers.
+  plate             String?              @db.VarChar(16)
+  zone              ParkingZone
+  /// Level and row reported by the operator (camera or spot sensor), e.g. "-2" / "C".
+  level             String?              @db.VarChar(20)
+  spot              String?              @db.VarChar(20)
+  enteredAt         DateTime             @map("entered_at") @db.Timestamptz(6)
+  exitedAt          DateTime?            @map("exited_at") @db.Timestamptz(6)
+  status            ParkingSessionStatus @default(open)
+  /// End of the paid hour; exit must happen before it.
+  paidUntil         DateTime?            @map("paid_until") @db.Timestamptz(6)
+  amountDueKopecks  Int                  @default(0) @map("amount_due_kopecks")
+  amountPaidKopecks Int                  @default(0) @map("amount_paid_kopecks")
+  /// Session id at the parking operator; unique so the sync job can upsert by it.
+  providerRef       String?              @unique @map("provider_ref") @db.VarChar(100)
+  source            ParkingSessionSource
+  lastSyncedAt      DateTime?            @map("last_synced_at") @db.Timestamptz(6)
+  closedReason      String?              @map("closed_reason") @db.VarChar(100)
+  /// F7 «Так, я тут»: the "still inside?" thresholds count from this moment.
+  presenceConfirmedAt DateTime?          @map("presence_confirmed_at") @db.Timestamptz(6)
+  /// F2 «Це не моє авто» and other disputes: the session is hidden from the hero.
+  disputedAt        DateTime?            @map("disputed_at") @db.Timestamptz(6)
+  /// not_my_car | wrong_amount | barrier
+  disputeReason     String?              @map("dispute_reason") @db.VarChar(30)
+  disputeComment    String?              @map("dispute_comment") @db.VarChar(500)
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user         User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  vehicle      Vehicle?             @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  paymentLinks ParkingPaymentLink[]
+
+  @@index([plate, status])
+  @@index([userId, enteredAt(sort: Desc)])
+  @@index([status, lastSyncedAt])
+  @@map("parking_sessions")
+}
+
+/// Versioned tariff: free minutes, hour prices, night window, lost ticket fee, zone hours (BRIEF section 4).
+model ParkingTariff {
+  id          String   @id @db.Uuid
+  version     Int      @unique
+  activeFrom  DateTime @map("active_from") @db.Timestamptz(6)
+  config      Json
+  createdById String?  @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  createdBy AdminUser? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([activeFrom])
+  @@map("parking_tariffs")
+}
+
+/// Links a session to the payments made for it (a session can be paid again after an overstay;
+/// a retried checkout is a new attempt and gets its own link).
+model ParkingPaymentLink {
+  sessionId    String    @map("session_id") @db.Uuid
+  paymentId    String    @map("payment_id") @db.Uuid
+  /// Exit deadline this payment buys (end of the paid hour, or the next one at the end of an hour).
+  paidUntil    DateTime? @map("paid_until") @db.Timestamptz(6)
+  /// What payment.succeeded did with it: applied | refund_queued | alerted (null while unpaid).
+  outcome      String?   @db.VarChar(30)
+  outcomeAt    DateTime? @map("outcome_at") @db.Timestamptz(6)
+  /// When the operator accepted the payment (barrier opens until paidUntil); the sweep retries until set.
+  registeredAt DateTime? @map("registered_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  session ParkingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  payment Payment        @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+
+  @@id([sessionId, paymentId])
+  @@index([paymentId])
+  @@index([createdAt])
+  @@map("parking_payment_links")
+}
+
+/// Operator callbacks already handled; (provider, eventId) is unique so redeliveries are no-ops.
+model ParkingWebhookLog {
+  id          String    @id @db.Uuid
+  provider    String    @db.VarChar(50)
+  eventId     String    @map("event_id") @db.VarChar(100)
+  type        String    @db.VarChar(50)
+  sessionId   String?   @map("session_id") @db.Uuid
+  receivedAt  DateTime  @default(now()) @map("received_at") @db.Timestamptz(6)
+  processedAt DateTime? @map("processed_at") @db.Timestamptz(6)
+  result      String?   @db.VarChar(200)
+
+  @@unique([provider, eventId])
+  @@index([receivedAt])
+  @@map("parking_webhook_logs")
+}

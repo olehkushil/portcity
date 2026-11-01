@@ -1,0 +1,202 @@
+// Rewards module: catalogue, redemptions, vouchers (rewards, coupons, tickets, certificates),
+// validator devices and their redemption log.
+
+enum RewardKind {
+  parking_hour
+  partner
+  certificate
+  gift
+  cinema
+}
+
+enum RedemptionStatus {
+  created
+  issued
+  cancelled
+  refunded
+}
+
+enum VoucherKind {
+  coupon
+  reward
+  ticket
+  certificate
+}
+
+enum VoucherStatus {
+  issued
+  active
+  redeemed
+  expired
+  cancelled
+}
+
+enum VoucherSourceType {
+  redemption
+  promo
+  event
+  admin
+}
+
+enum VoucherRedeemMethod {
+  code
+  token
+}
+
+enum VoucherRedemptionOutcome {
+  redeemed
+  not_found
+  not_active
+  activation_expired
+  already_redeemed
+  expired
+  cancelled
+  wrong_tenant
+  device_inactive
+}
+
+model Reward {
+  id           String     @id @db.Uuid
+  title        String     @db.VarChar(200)
+  description  String?
+  costPoints   Int        @map("cost_points")
+  kind         RewardKind
+  tenantId     String?    @map("tenant_id") @db.Uuid
+  /// Remaining stock; null means unlimited.
+  stock        Int?
+  perUserLimit Int?       @map("per_user_limit")
+  active       Boolean    @default(true)
+  validFrom    DateTime?  @map("valid_from") @db.Timestamptz(6)
+  validTo      DateTime?  @map("valid_to") @db.Timestamptz(6)
+  imageKey     String?    @map("image_key")
+  terms        String?
+  sortOrder    Int        @default(0) @map("sort_order")
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant      Tenant?      @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  redemptions Redemption[]
+
+  @@index([active, validFrom, validTo])
+  @@index([kind])
+  @@index([tenantId])
+  @@map("rewards")
+}
+
+/// Exchange of points for a reward; produces one spend transaction and one voucher.
+model Redemption {
+  id         String           @id @db.Uuid
+  userId     String           @map("user_id") @db.Uuid
+  rewardId   String           @map("reward_id") @db.Uuid
+  /// The spend transaction. A refund transaction points back through sourceType = redemption.
+  pointsTxId String?          @unique @map("points_tx_id") @db.Uuid
+  voucherId  String?          @unique @map("voucher_id") @db.Uuid
+  status     RedemptionStatus @default(created)
+  createdAt  DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user     User               @relation(fields: [userId], references: [id], onDelete: Restrict)
+  reward   Reward             @relation(fields: [rewardId], references: [id], onDelete: Restrict)
+  pointsTx PointsTransaction? @relation(fields: [pointsTxId], references: [id], onDelete: Restrict)
+  voucher  Voucher?           @relation(fields: [voucherId], references: [id], onDelete: Restrict)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([rewardId])
+  @@index([userId, rewardId, status])
+  @@map("redemptions")
+}
+
+/// Anything a member presents at a counter: reward vouchers, promo coupons, event tickets, certificates.
+model Voucher {
+  id                  String            @id @db.Uuid
+  userId              String            @map("user_id") @db.Uuid
+  kind                VoucherKind
+  title               String            @db.VarChar(200)
+  subtitle            String?           @db.VarChar(300)
+  tenantId            String?           @map("tenant_id") @db.Uuid
+  /// 6-character code from the alphabet 23456789ABCDEFGHJKLMNPQRSTUVWXYZ, issued at activation.
+  /// Unique among non-final vouchers through a partial unique index (see init migration).
+  code                String?           @db.VarChar(6)
+  /// HMAC-SHA256 hex of the signed activation token base64url(voucherId.exp.hmac).
+  tokenHash           String?           @map("token_hash") @db.VarChar(64)
+  status              VoucherStatus     @default(issued)
+  activatedAt         DateTime?         @map("activated_at") @db.Timestamptz(6)
+  /// End of the 120-second activation window.
+  activationExpiresAt DateTime?         @map("activation_expires_at") @db.Timestamptz(6)
+  redeemedAt          DateTime?         @map("redeemed_at") @db.Timestamptz(6)
+  redeemedByDeviceId  String?           @map("redeemed_by_device_id") @db.Uuid
+  redeemedByTenantId  String?           @map("redeemed_by_tenant_id") @db.Uuid
+  /// Hard expiry of the voucher itself; null means no expiry.
+  expiresAt           DateTime?         @map("expires_at") @db.Timestamptz(6)
+  sourceType          VoucherSourceType @map("source_type")
+  /// Id of the redemption, promo, event registration or admin action that issued the voucher.
+  sourceId            String?           @map("source_id") @db.Uuid
+  meta                Json              @default("{}")
+  /// Storage key of the picture shown in the wallet (the reward's image for redemption vouchers);
+  /// the API exposes S3_PUBLIC_BASE_URL + key as imageUrl.
+  imageKey            String?           @map("image_key")
+  createdAt           DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user              User                   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  tenant            Tenant?                @relation("VoucherTenant", fields: [tenantId], references: [id], onDelete: SetNull)
+  redeemedByDevice  ValidatorDevice?       @relation(fields: [redeemedByDeviceId], references: [id], onDelete: SetNull)
+  redeemedByTenant  Tenant?                @relation("VoucherRedeemedByTenant", fields: [redeemedByTenantId], references: [id], onDelete: SetNull)
+  redemption        Redemption?
+  eventRegistration EventRegistration?
+  redemptionLogs    VoucherRedemptionLog[]
+
+  @@index([userId, status])
+  @@index([status, expiresAt])
+  @@index([status, activationExpiresAt])
+  @@index([sourceType, sourceId])
+  @@map("vouchers")
+}
+
+/// Tablet or phone at a counter that redeems vouchers; authenticates with X-Validator-Key plus a PIN per shift.
+model ValidatorDevice {
+  id                String    @id @db.Uuid
+  /// Null for mall-operated devices (information desk).
+  tenantId          String?   @map("tenant_id") @db.Uuid
+  name              String    @db.VarChar(100)
+  /// scrypt hash of the shift PIN (PHC string format).
+  pinHash           String    @map("pin_hash")
+  /// SHA-256 hex of the device key sent in X-Validator-Key.
+  deviceKeyHash     String    @unique @map("device_key_hash") @db.VarChar(64)
+  active            Boolean   @default(true)
+  lastSeenAt        DateTime? @map("last_seen_at") @db.Timestamptz(6)
+  revokedAt         DateTime? @map("revoked_at") @db.Timestamptz(6)
+  /// Consecutive wrong PINs on POST /validator/shift; reset on success and when the lock starts.
+  failedPinAttempts Int       @default(0) @map("failed_pin_attempts")
+  /// Opening a shift is refused until this moment (5 wrong PINs lock the device for 15 minutes).
+  pinLockedUntil    DateTime? @map("pin_locked_until") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant           Tenant?                @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  redeemedVouchers Voucher[]
+  redemptionLogs   VoucherRedemptionLog[]
+
+  @@index([tenantId])
+  @@map("validator_devices")
+}
+
+/// Every redeem attempt from a validator device, successful or not.
+model VoucherRedemptionLog {
+  id                String                   @id @db.Uuid
+  voucherId         String?                  @map("voucher_id") @db.Uuid
+  validatorDeviceId String?                  @map("validator_device_id") @db.Uuid
+  method            VoucherRedeemMethod
+  codeTried         String?                  @map("code_tried") @db.VarChar(16)
+  outcome           VoucherRedemptionOutcome
+  message           String?
+  ip                String?                  @db.VarChar(45)
+  createdAt         DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  voucher         Voucher?         @relation(fields: [voucherId], references: [id], onDelete: SetNull)
+  validatorDevice ValidatorDevice? @relation(fields: [validatorDeviceId], references: [id], onDelete: SetNull)
+
+  @@index([validatorDeviceId, createdAt(sort: Desc)])
+  @@index([voucherId])
+  @@map("voucher_redemption_logs")
+}

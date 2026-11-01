@@ -1,0 +1,145 @@
+name: Backend CI
+
+# The backend lives in backend/ of the PortCity monorepo; every run step works there.
+on:
+  push:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
+  pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
+
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_ENV: test
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  checks:
+    name: Lint, typecheck, unit tests, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma validate and generate
+        # prisma validate resolves env("DATABASE_URL") even without connecting; any URL works here.
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci?schema=public
+        run: |
+          npx prisma validate
+          npx prisma generate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Build
+        run: npm run build
+
+      - name: Generate OpenAPI document
+        run: node dist/scripts/openapi.js docs/openapi.json
+
+      - name: Check that docs/API.md is up to date
+        # docs/API.md is generated from the OpenAPI document (npm run docs:api); regenerate and commit it
+        # whenever endpoints change.
+        run: |
+          node dist/scripts/api-md.js docs/openapi.json docs/API.md
+          npx prettier --write docs/API.md
+          git diff --exit-code -- docs/API.md || (echo "docs/API.md is stale: run npm run docs:api and commit the result" && exit 1)
+
+      - name: Upload OpenAPI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi
+          path: |
+            backend/docs/openapi.json
+            backend/docs/API.md
+          if-no-files-found: error
+
+      - name: Docker build (no push)
+        run: docker build --tag portcity-backend:ci .
+
+  integration:
+    name: Integration and e2e tests
+    runs-on: ubuntu-latest
+    needs: checks
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: portcity
+          POSTGRES_PASSWORD: portcity
+          POSTGRES_DB: portcity_test
+          # UTF-8 locale with Unicode case mapping (Cyrillic ILIKE in member and tenant search).
+          POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale-provider=builtin --builtin-locale=C.UTF-8"
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U portcity -d portcity_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+    env:
+      DATABASE_URL: postgresql://portcity:portcity@localhost:5432/portcity_test?schema=public
+      REDIS_URL: redis://localhost:6379
+      PRISMA_LAZY_CONNECT: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+
+      - name: Seed (twice, it must be idempotent)
+        run: |
+          npm run db:seed
+          npm run db:seed
+
+      - name: Integration tests (PostgreSQL)
+        # test/**/*.int-spec.ts and src/**/*.int-spec.ts; they truncate tables, so they run after the seed check.
+        run: npm run test:int
+
+      - name: End-to-end tests (full AppModule against PostgreSQL)
+        run: npm run test:e2e

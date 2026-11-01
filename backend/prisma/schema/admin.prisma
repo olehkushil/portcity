@@ -1,0 +1,99 @@
+// Admin module: manual point adjustments with four-eyes approval and nightly aggregates.
+// AuditLog and FeatureFlag live in base.prisma.
+
+enum ManualAdjustmentStatus {
+  pending
+  approved
+  rejected
+  applied
+}
+
+/// Manual points correction. Above thresholdPoints (absolute amount) a second admin must approve before it is applied.
+model ManualAdjustment {
+  id                   String                 @id @db.Uuid
+  accountId            String                 @map("account_id") @db.Uuid
+  /// Owner of the adjusted account, copied at request time so admin never reads loyalty_accounts.
+  userId               String                 @map("user_id") @db.Uuid
+  /// Signed amount in points.
+  amount               Int
+  reason               String
+  requestedById        String                 @map("requested_by_id") @db.Uuid
+  approvedById         String?                @map("approved_by_id") @db.Uuid
+  status               ManualAdjustmentStatus @default(pending)
+  pointsTxId           String?                @unique @map("points_tx_id") @db.Uuid
+  thresholdPoints      Int                    @default(500) @map("threshold_points")
+  /// Why a second admin must approve: amount | requester_daily_total | account_24h_total.
+  /// Null = decided by the requester alone (counts towards the cumulative four-eyes totals).
+  secondApprovalReason String?                @map("second_approval_reason") @db.VarChar(32)
+  decidedAt            DateTime?              @map("decided_at") @db.Timestamptz(6)
+  appliedAt            DateTime?              @map("applied_at") @db.Timestamptz(6)
+  rejectionReason      String?                @map("rejection_reason")
+  createdAt            DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  account     LoyaltyAccount     @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  user        User               @relation(fields: [userId], references: [id], onDelete: Restrict)
+  requestedBy AdminUser          @relation("ManualAdjustmentRequestedBy", fields: [requestedById], references: [id], onDelete: Restrict)
+  approvedBy  AdminUser?         @relation("ManualAdjustmentApprovedBy", fields: [approvedById], references: [id], onDelete: Restrict)
+  pointsTx    PointsTransaction? @relation(fields: [pointsTxId], references: [id], onDelete: Restrict)
+
+  @@index([status, createdAt])
+  @@index([accountId])
+  @@index([userId, createdAt])
+  @@index([requestedById, createdAt])
+  @@index([accountId, createdAt])
+  @@map("manual_adjustments")
+}
+
+enum SupportRequestTopic {
+  receipt
+  parking
+  voucher
+  other
+}
+
+enum SupportRequestStatus {
+  new
+  in_progress
+  resolved
+  closed
+}
+
+/// Member support request ("Звернення", prototype screen support). `number` is the human number
+/// shown to the member (№ 1042) from the serial sequence support_requests_number_seq, restarted at
+/// 1001 in migration 20261101180000_review_fixes. `userId` has a FK to users in that migration
+/// (no Prisma relation, so identity.prisma stays untouched).
+model SupportRequest {
+  id           String               @id @db.Uuid
+  number       Int                  @unique @default(autoincrement())
+  userId       String               @map("user_id") @db.Uuid
+  topic        SupportRequestTopic
+  /// What the request is about: receipt | parking_session | voucher | payment | event_registration | other.
+  relatedType  String?              @map("related_type") @db.VarChar(32)
+  relatedId    String?              @map("related_id") @db.VarChar(64)
+  message      String
+  /// Storage key under support/<userId>/ (POST /support/requests/photo-upload-url).
+  photoKey     String?              @map("photo_key") @db.VarChar(512)
+  status       SupportRequestStatus @default(new)
+  /// Last back-office note (every change is also in the audit log).
+  adminNote    String?              @map("admin_note")
+  /// Admin who resolved or closed the request.
+  resolvedById String?              @map("resolved_by_id") @db.Uuid
+  resolvedAt   DateTime?            @map("resolved_at") @db.Timestamptz(6)
+  createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status, createdAt])
+  @@map("support_requests")
+}
+
+/// Daily aggregates written by the reports-nightly job: receipts by status, points earned/spent,
+/// active vouchers, parking sessions. One row per Kyiv calendar day.
+model DailyStat {
+  day        DateTime @id @db.Date
+  stats      Json
+  computedAt DateTime @default(now()) @map("computed_at") @db.Timestamptz(6)
+
+  @@map("daily_stats")
+}

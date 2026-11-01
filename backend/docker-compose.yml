@@ -1,0 +1,151 @@
+# Local stack: PostgreSQL 17, Redis 7, API, worker. Profile "tools" adds Adminer, Metabase and MinIO.
+#   docker compose up -d postgres redis          (infrastructure only, run the app with npm)
+#   docker compose up --build                    (full stack)
+#   docker compose --profile tools up -d         (plus adminer :8080, metabase :3030, minio :9001)
+
+# The stack is a local demo: it runs NODE_ENV=development because the development adapters
+# (parking emulator, mock payments, SMS to the log) are refused in production. A production
+# deployment sets NODE_ENV=production plus real secrets and adapters (docs/RUNBOOK.md).
+# The compose-only-* secrets and portcity-secret below are on the production deny-list
+# (src/common/config/secret-policy.ts): NODE_ENV=production refuses to start with them, as it
+# refuses CORS_ORIGINS=* and the 6-digit demo code (production needs ALLOW_STATIC_OTP=true and
+# 8-digit codes). Production secrets: at least 32 random characters each (openssl rand -base64 48).
+x-app-env: &app-env
+  NODE_ENV: ${NODE_ENV:-development}
+  DATABASE_URL: postgresql://portcity:portcity@postgres:5432/portcity?schema=public
+  REDIS_URL: redis://redis:6379
+  QUEUE_DRIVER: redis
+  # memory by default; with `--profile tools` set STORAGE_DRIVER=s3 to use MinIO.
+  STORAGE_DRIVER: ${STORAGE_DRIVER:-memory}
+  S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+  S3_REGION: ${S3_REGION:-eu-central-1}
+  S3_BUCKET: ${S3_BUCKET:-portcity}
+  S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-portcity}
+  S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-portcity-secret}
+  S3_FORCE_PATH_STYLE: "true"
+  JWT_SECRET: ${JWT_SECRET:-compose-only-jwt-secret-please-change-0123456789}
+  OTP_PEPPER: ${OTP_PEPPER:-compose-only-otp-pepper}
+  VOUCHER_PEPPER: ${VOUCHER_PEPPER:-compose-only-voucher-pepper}
+  MEMBER_QR_SECRET: ${MEMBER_QR_SECRET:-compose-only-member-qr-secret}
+  CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
+  DOCS_ENABLED: ${DOCS_ENABLED:-true}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  LOG_PRETTY: "false"
+  # The API port is published directly (no reverse proxy in this stack), so X-Forwarded-For is not
+  # trusted. Behind a load balancer use a hop count (1) or its CIDR (see .env.example).
+  TRUST_PROXY: ${TRUST_PROXY:-false}
+  PARKING_EMULATOR_SCENARIO: ${PARKING_EMULATOR_SCENARIO:-payable}
+  PARKING_EMULATOR_ANCHOR: ${PARKING_EMULATOR_ANCHOR:-now}
+  # Demo login without SMS: the demo member receives this fixed code.
+  OTP_STATIC_CODES: ${OTP_STATIC_CODES:-+380501234567:123456}
+  PAYMENTS_MOCK_CHECKOUT_BASE_URL: ${PAYMENTS_MOCK_CHECKOUT_BASE_URL:-http://localhost:3000/api/v1/mock-checkout}
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: portcity
+      POSTGRES_PASSWORD: portcity
+      POSTGRES_DB: portcity
+      # UTF-8 locale with Unicode case mapping: case-insensitive search of Ukrainian names needs it
+      # (the plain C locale does not fold Cyrillic). Applies to a new volume only.
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale-provider=builtin --builtin-locale=C.UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portcity -d portcity"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    # noeviction is required by BullMQ; appendonly keeps jobs across restarts.
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: portcity-backend:local
+    environment:
+      <<: *app-env
+      APP_MODE: api
+      PORT: 3000
+      RUN_MIGRATIONS: "true"
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    image: portcity-backend:local
+    command: ["node", "dist/worker.js"]
+    environment:
+      <<: *app-env
+      APP_MODE: worker
+      WORKER_PORT: 3001
+      HEALTH_PORT: 3001
+      RUN_MIGRATIONS: "false"
+    depends_on:
+      api:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:latest
+    profiles: ["tools"]
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      - postgres
+
+  metabase:
+    image: metabase/metabase:latest
+    profiles: ["tools"]
+    ports:
+      - "3030:3000"
+    environment:
+      MB_DB_FILE: /metabase-data/metabase.db
+    volumes:
+      - metabasedata:/metabase-data
+    depends_on:
+      - postgres
+
+  minio:
+    image: minio/minio:latest
+    profiles: ["tools"]
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID:-portcity}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:-portcity-secret}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+
+volumes:
+  pgdata:
+  redisdata:
+  metabasedata:
+  miniodata:

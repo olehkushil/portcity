@@ -1,0 +1,245 @@
+// Identity module: members, devices, consents, OTP challenges, refresh tokens,
+// back-office users and account deletion requests.
+// Other modules reference User and AdminUser through the explicit relations declared here.
+
+enum UserStatus {
+  active
+  blocked
+  deleted
+}
+
+enum Platform {
+  ios
+  android
+  web
+}
+
+enum ConsentPurpose {
+  program
+  marketing
+  profiling
+}
+
+enum AdminRole {
+  owner
+  manager
+  moderator
+  support
+  validator
+}
+
+/// Profile gender of a member or a child; `unspecified` is an explicit "prefer not to say".
+enum Gender {
+  female
+  male
+  other
+  unspecified
+}
+
+/// Member of the loyalty program. Rows are never hard-deleted: a deletion request anonymises them.
+model User {
+  id                     String     @id @db.Uuid
+  /// E.164 phone, e.g. +380501234567. Anonymised accounts keep a unique placeholder here.
+  phone                  String     @unique @db.VarChar(32)
+  /// Stored lower-cased by the application.
+  email                  String?    @unique @db.VarChar(254)
+  firstName              String?    @map("first_name") @db.VarChar(100)
+  lastName               String?    @map("last_name") @db.VarChar(100)
+  birthDate              DateTime?  @map("birth_date") @db.Date
+  /// Null = not answered (counts as missing in profileCompletion); any value counts as filled.
+  gender                 Gender?
+  /// Free-text city of residence, trimmed by the application.
+  city                   String?    @db.VarChar(100)
+  status                 UserStatus @default(active)
+  /// 9-digit member code shown on the club card and encoded in the QR payload PC1:<memberCode>:<hmac8>.
+  memberCode             String     @unique @map("member_code") @db.VarChar(9)
+  profileCompletedAt     DateTime?  @map("profile_completed_at") @db.Timestamptz(6)
+  /// Profile fields (PROFILE_FIELDS) already announced with user.profile_field_completed; each
+  /// field is announced once per member even if it is cleared and filled again.
+  completedProfileFields String[]   @default([]) @map("completed_profile_fields")
+  createdAt              DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt              DateTime?  @map("deleted_at") @db.Timestamptz(6)
+
+  children                Child[]
+  devices                 Device[]
+  consents                Consent[]
+  refreshTokens           RefreshToken[]
+  deletionRequests        AccountDeletionRequest[]
+  loyaltyAccount          LoyaltyAccount?
+  receipts                Receipt[]
+  redemptions             Redemption[]
+  vouchers                Voucher[]
+  eventRegistrations      EventRegistration[]
+  vehicles                Vehicle[]
+  parkingSessions         ParkingSession[]
+  payments                Payment[]
+  notifications           Notification[]
+  notificationPreferences NotificationPreference[]
+  manualAdjustments       ManualAdjustment[]
+
+  @@index([status])
+  @@map("users")
+}
+
+/// Child of a member (profile, kids' offers). Month and year only: no names, no exact dates.
+/// At most 6 per member (enforced by the application under a row lock on the user).
+model Child {
+  id         String   @id @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  /// 1-12.
+  birthMonth Int      @map("birth_month") @db.SmallInt
+  birthYear  Int      @map("birth_year") @db.SmallInt
+  gender     Gender   @default(unspecified)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("children")
+}
+
+/// Installed app instance of a member.
+model Device {
+  id          String    @id @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  platform    Platform
+  model       String?   @db.VarChar(100)
+  appVersion  String?   @map("app_version") @db.VarChar(32)
+  /// Client-generated installation fingerprint; drives the device_shared risk flag on receipts.
+  fingerprint String?   @db.VarChar(128)
+  pushToken   String?   @map("push_token")
+  pushEnabled Boolean   @default(false) @map("push_enabled")
+  lastSeenAt  DateTime? @map("last_seen_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokens  RefreshToken[]
+  receipts       Receipt[]
+  pushDeliveries PushDelivery[]
+
+  @@index([userId])
+  @@index([fingerprint])
+  @@map("devices")
+}
+
+/// Consent record per purpose; a new version of the text creates a new row.
+model Consent {
+  id        String         @id @db.Uuid
+  userId    String         @map("user_id") @db.Uuid
+  purpose   ConsentPurpose
+  /// Version of the consent text that was accepted, e.g. "2026-10".
+  version   String         @db.VarChar(32)
+  grantedAt DateTime       @default(now()) @map("granted_at") @db.Timestamptz(6)
+  revokedAt DateTime?      @map("revoked_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose])
+  @@map("consents")
+}
+
+/// One-time SMS code challenge. The plain code is never stored.
+model OtpChallenge {
+  id                String    @id @db.Uuid
+  phone             String    @db.VarChar(32)
+  /// HMAC-SHA256(code, server pepper) as hex.
+  codeHash          String    @map("code_hash") @db.VarChar(64)
+  expiresAt         DateTime  @map("expires_at") @db.Timestamptz(6)
+  attempts          Int       @default(0)
+  maxAttempts       Int       @default(5) @map("max_attempts")
+  /// Rate-limit key of the client address: the IPv4 address, or the /64 network of an IPv6
+  /// address (`2001:db8:1:2::/64`), so one subscriber cannot rotate addresses inside its prefix.
+  ip                String?   @db.VarChar(45)
+  deviceFingerprint String?   @map("device_fingerprint") @db.VarChar(128)
+  consumedAt        DateTime? @map("consumed_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([phone, createdAt])
+  @@index([ip, createdAt])
+  /// Global daily SMS budget (count of challenges since the start of the Kyiv day).
+  @@index([createdAt])
+  @@map("otp_challenges")
+}
+
+/// Opaque refresh token, stored hashed. Rotated on every refresh; reuse of a rotated token revokes the family.
+model RefreshToken {
+  id           String    @id @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  deviceId     String?   @map("device_id") @db.Uuid
+  /// Rotation family id shared by all successors of the first token issued at login.
+  family       String    @db.Uuid
+  /// SHA-256 hex of the opaque 32-byte token.
+  tokenHash    String    @unique @map("token_hash") @db.VarChar(64)
+  expiresAt    DateTime  @map("expires_at") @db.Timestamptz(6)
+  revokedAt    DateTime? @map("revoked_at") @db.Timestamptz(6)
+  replacedById String?   @unique @map("replaced_by_id") @db.Uuid
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device     Device?       @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  replacedBy RefreshToken? @relation("RefreshTokenRotation", fields: [replacedById], references: [id], onDelete: SetNull)
+  replaces   RefreshToken? @relation("RefreshTokenRotation")
+
+  @@index([userId])
+  @@index([family])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+/// Back-office user: email + scrypt password + optional TOTP. Deactivated, never deleted, once referenced.
+model AdminUser {
+  id                     String    @id @db.Uuid
+  email                  String    @unique @db.VarChar(254)
+  /// scrypt hash in PHC string format: $scrypt$ln=14,r=8,p=1$<salt b64>$<hash b64>.
+  passwordHash           String    @map("password_hash")
+  totpSecret             String?   @map("totp_secret")
+  /// Last accepted TOTP time step (unix seconds / 30); codes of this or an earlier step are refused.
+  totpLastStep           Int?      @map("totp_last_step")
+  role                   AdminRole
+  name                   String?   @db.VarChar(200)
+  active                 Boolean   @default(true)
+  lastLoginAt            DateTime? @map("last_login_at") @db.Timestamptz(6)
+  /// Consecutive failed logins (wrong password or TOTP code); reset by a successful login and
+  /// restarted when the previous failure is older than ADMIN_LOGIN_FAILURE_WINDOW_SECONDS.
+  failedLoginCount       Int       @default(0) @map("failed_login_count")
+  lastFailedLoginAt      DateTime? @map("last_failed_login_at") @db.Timestamptz(6)
+  /// Logins are refused (429 PC_ADMIN_LOGIN_LOCKED) until this moment; exponential backoff.
+  lockedUntil            DateTime? @map("locked_until") @db.Timestamptz(6)
+  /// jti of the only TOTP login challenge that may still be completed (null = none outstanding).
+  loginChallengeId       String?   @map("login_challenge_id") @db.Uuid
+  /// Codes tried against that challenge; the challenge is dead at ADMIN_TOTP_CHALLENGE_MAX_ATTEMPTS.
+  loginChallengeAttempts Int       @default(0) @map("login_challenge_attempts")
+  createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  moderatedReceipts      Receipt[]
+  resolvedAppeals        ReceiptAppeal[]
+  confirmedFiscalNumbers TenantFiscalNumber[]
+  ruleSetsCreated        LoyaltyRuleSet[]
+  pointsTransactions     PointsTransaction[]
+  parkingTariffsCreated  ParkingTariff[]
+  adjustmentsRequested   ManualAdjustment[]   @relation("ManualAdjustmentRequestedBy")
+  adjustmentsApproved    ManualAdjustment[]   @relation("ManualAdjustmentApprovedBy")
+
+  @@map("admin_users")
+}
+
+/// Right-to-erasure request; executed by the daily account-deletion job after the cooling-off period.
+model AccountDeletionRequest {
+  id           String    @id @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  requestedAt  DateTime  @default(now()) @map("requested_at") @db.Timestamptz(6)
+  /// requestedAt + ACCOUNT_DELETION_GRACE_DAYS (default 30), set by the application.
+  executeAfter DateTime  @map("execute_after") @db.Timestamptz(6)
+  executedAt   DateTime? @map("executed_at") @db.Timestamptz(6)
+  cancelledAt  DateTime? @map("cancelled_at") @db.Timestamptz(6)
+  reason       String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([executedAt, executeAfter])
+  @@map("account_deletion_requests")
+}

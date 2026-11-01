@@ -1,0 +1,133 @@
+// Receipts module: tax-service QR receipts, their moderation trail and appeals.
+
+enum ReceiptSource {
+  qr
+  manual
+}
+
+enum ReceiptStatus {
+  uploaded
+  parsed
+  auto_approved
+  needs_moderation
+  approved
+  rejected
+  credited
+  appealed
+}
+
+/// Authenticity check of a QR receipt against the tax service (TaxReceiptVerifierPort).
+enum ReceiptVerification {
+  /// Credited without a verification hold (old account, small total, moderator decision).
+  not_required
+  /// Points are held until verify_until; the verify job keeps asking the checker.
+  pending
+  /// The checker confirmed the receipt.
+  confirmed
+  /// The checker rejected the receipt; held points were reversed.
+  rejected
+  /// The hold ended without a definitive answer; the points were released as usual.
+  unconfirmed
+}
+
+/// A fiscal receipt submitted by a member. (fn, fiscalId) is unique across the whole program and
+/// holds canonical values (receipts/domain/fiscal-ids.ts), so rewritten numbers cannot be re-used.
+model Receipt {
+  id                    String              @id @db.Uuid
+  userId                String              @map("user_id") @db.Uuid
+  deviceId              String?             @map("device_id") @db.Uuid
+  /// Canonical fiscal number of the cash register (digits, no leading zeros). Null only for a
+  /// manual receipt submitted with a tenant but without the number; the moderator fills it in.
+  fn                    String?             @db.VarChar(20)
+  /// Canonical fiscal number of the receipt (upper case, no spaces or dashes, numeric ids without
+  /// leading zeros).
+  fiscalId              String              @map("fiscal_id") @db.VarChar(64)
+  /// fn exactly as submitted (QR parameter or manual form), audit only.
+  fnRaw                 String?             @map("fn_raw") @db.VarChar(64)
+  /// Receipt number exactly as submitted, audit only.
+  fiscalIdRaw           String?             @map("fiscal_id_raw") @db.VarChar(128)
+  verification          ReceiptVerification @default(not_required)
+  /// End of the verification hold (availableAt of the pending ledger entry).
+  verifyUntil           DateTime?           @map("verify_until") @db.Timestamptz(6)
+  verificationCheckedAt DateTime?           @map("verification_checked_at") @db.Timestamptz(6)
+  issuedAt              DateTime            @map("issued_at") @db.Timestamptz(6)
+  /// CHECK (total_kopecks > 0) in the migration.
+  totalKopecks          Int                 @map("total_kopecks")
+  /// Decoded QR text as scanned (trimmed), kept for audit; null for manual receipts.
+  rawQr                 String?             @map("raw_qr")
+  source                ReceiptSource
+  photoKey              String?             @map("photo_key")
+  tenantId              String?             @map("tenant_id") @db.Uuid
+  status                ReceiptStatus       @default(uploaded)
+  /// JSON array of flag strings: fast_submit, fn_unknown, high_total, device_shared.
+  riskFlags             Json                @default("[]") @map("risk_flags")
+  riskScore             Int                 @default(0) @map("risk_score")
+  moderatorId           String?             @map("moderator_id") @db.Uuid
+  /// Why the rules sent the receipt to moderation (JSON array of MODERATION_REASONS codes, see
+  /// receipts/domain/rules.ts).
+  moderationReasons     Json                @default("[]") @map("moderation_reasons")
+  /// Rule that rejected the receipt (PC_RECEIPT_TOO_OLD, ...); null for moderator rejections.
+  rejectionCode         String?             @map("rejection_code") @db.VarChar(64)
+  decisionReason        String?             @map("decision_reason")
+  decidedAt             DateTime?           @map("decided_at") @db.Timestamptz(6)
+  pointsAwarded         Int?                @map("points_awarded")
+  pointsTxId            String?             @unique @map("points_tx_id") @db.Uuid
+  submittedAt           DateTime            @default(now()) @map("submitted_at") @db.Timestamptz(6)
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user      User               @relation(fields: [userId], references: [id], onDelete: Restrict)
+  device    Device?            @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  tenant    Tenant?            @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  moderator AdminUser?         @relation(fields: [moderatorId], references: [id], onDelete: SetNull)
+  pointsTx  PointsTransaction? @relation(fields: [pointsTxId], references: [id], onDelete: Restrict)
+  events    ReceiptEvent[]
+  appeals   ReceiptAppeal[]
+
+  @@unique([fn, fiscalId])
+  @@index([userId, submittedAt(sort: Desc)])
+  @@index([status, submittedAt])
+  @@index([status, updatedAt])
+  @@index([fn, issuedAt])
+  @@index([fn, totalKopecks, submittedAt])
+  @@index([verification, verificationCheckedAt])
+  @@index([tenantId])
+  @@index([deviceId])
+  @@map("receipts")
+}
+
+/// Status transition history of a receipt.
+model ReceiptEvent {
+  id         String         @id @db.Uuid
+  receiptId  String         @map("receipt_id") @db.Uuid
+  fromStatus ReceiptStatus? @map("from_status")
+  toStatus   ReceiptStatus  @map("to_status")
+  actorType  ActorType      @map("actor_type")
+  actorId    String?        @map("actor_id") @db.Uuid
+  note       String?
+  createdAt  DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  receipt Receipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+
+  @@index([receiptId, createdAt])
+  @@map("receipt_events")
+}
+
+/// Member appeal against a rejection; resolving it moves the receipt back to needs_moderation.
+model ReceiptAppeal {
+  id           String    @id @db.Uuid
+  receiptId    String    @map("receipt_id") @db.Uuid
+  message      String
+  photoKey     String?   @map("photo_key")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  resolvedAt   DateTime? @map("resolved_at") @db.Timestamptz(6)
+  resolvedById String?   @map("resolved_by_id") @db.Uuid
+  resolution   String?
+
+  receipt    Receipt    @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  resolvedBy AdminUser? @relation(fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([receiptId])
+  @@index([resolvedAt])
+  @@map("receipt_appeals")
+}
